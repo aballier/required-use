@@ -7,10 +7,7 @@ from parser import (parse_string, Flag, Implication, NaryOperator,
 
 
 def nested_negations(constraint, final_constraint):
-    val = final_constraint
-    for v in reversed(constraint):
-        val = Implication(v.negated(), [val])
-    return val
+    return Implication([v.negated() for v in constraint], final_constraint)
 
 
 def replace_nary(ast):
@@ -27,15 +24,18 @@ def replace_nary(ast):
                     raise NotImplementedError('Nested operators not supported')
             # then replace the expression itself
             if isinstance(expr, AnyOfOperator) or isinstance(expr, ExactlyOneOfOperator):
-                # || ( a b c ... ) -> !b? ( !c? ( ...? ( a ) ) )
+                # || ( a b c ... ) -> !a? !b? ( !c? ( ...? ( a ) ) )
                 # ^^ ( a b c ... ) -> || ( a b c ... ) ?? ( a b c ... )
-                yield nested_negations(constraint[1:], constraint[0])
+                yield nested_negations(constraint[0:], [constraint[0]])
             if isinstance(expr, AtMostOneOfOperator) or isinstance(expr, ExactlyOneOfOperator):
-                # ?? ( a b c ... ) -> a? ( !b !c ... ) b? ( !c ... ) ...
+                # ?? ( a b c ... ) -> a? ( !b !c ... ) !a? b? ( !c ... ) ...
                 # ^^ ( a b c ... ) -> || ( a b c ... ) ?? ( a b c ... )
+                o = []
                 while len(constraint) > 1:
                     k = constraint.pop(0)
-                    yield Implication(k, [f.negated() for f in constraint])
+                    l = o + [k]
+                    yield Implication(l, [f.negated() for f in constraint])
+                    o = o + [k.negated()]
 
 
 def sort_nary(ast, sort_key):
