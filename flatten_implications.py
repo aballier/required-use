@@ -15,14 +15,16 @@ def nested_implications(conditions, final_constraint):
 
 def flatten_implications(ast, current_implications=[]):
     for expr in ast:
+        if isinstance(expr, list):
+            yield Implication(current_implications, expr)
         if isinstance(expr, Flag):
-            yield nested_implications(current_implications, expr)
+            yield Implication(current_implications, [expr])
         elif isinstance(expr, Implication):
-            for x in flatten_implications(expr.constraint,
-                    current_implications + [expr.condition]):
+            c = current_implications + expr.condition
+            for x in flatten_implications(expr.constraint, c):
                 yield x
-        elif isinstance(expr, NaryOperator):
-            raise ValueError('N-ary operators should be replaced already')
+        else:
+            raise ValueError('N-ary operators should be replaced already (%s)'%expr)
 
 
 if __name__ == '__main__':
