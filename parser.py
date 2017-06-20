@@ -59,7 +59,7 @@ class Implication(object):
             constraint = ncons
             nc = []
             for c in condition:
-                if c not in nc:
+                if c not in nc and c.negated() not in constraint:
                     nc.append(c)
             condition = nc
 
