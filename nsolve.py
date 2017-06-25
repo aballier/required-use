@@ -30,7 +30,9 @@ def solve(constraint_str, immutable_flag_str='', pkg='', parse_error={},
             cb = flat[j].can_break(flat[i])
             if cb:
                 need_topo_sort[pkg] = constraint_str
-                if(print_status): print("'%s' needs sorting"%constraint_str)
+                if(print_status):
+                    print("'%s' needs sorting"%constraint_str)
+                    print("As for example: %s"%x)
                 return
     if(print_status): print("'%s' is all good"%constraint_str)
     good[pkg]=constraint_str
